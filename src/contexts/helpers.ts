@@ -1,17 +1,18 @@
 
 import { web3 } from '@project-serum/anchor';
 import {
-  Keypair,
+  // Keypair,
   PublicKey,
   SystemProgram,
   SYSVAR_RENT_PUBKEY,
   Transaction,
 } from '@solana/web3.js';
-import { Token, TOKEN_PROGRAM_ID, AccountLayout } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import * as anchor from '@project-serum/anchor';
 import { showToast, METADATA_PROGRAM_ID } from './utils';
 import { WalletContextState } from '@solana/wallet-adapter-react';
 import { IDL } from './anchor_idl/idl/staking_program';
+import { programs } from '@metaplex/js';
 
 export const solConnection = new web3.Connection(web3.clusterApiUrl("devnet"));
 
@@ -24,6 +25,13 @@ const PROGRAM_ID = "FbaMJWS14yAPH68LwFAHxaBSukgBHnAY9VaEfhFxWerb";
 const GLOBAL_AUTHORITY_SEED = "global-authority";
 const POOL_WALLET_SEED = "pool-wallet";
 const POOL_SIZE = 2048;
+
+export const getNftMetaData = async (nftMintPk: PublicKey) => {
+  let { metadata: { Metadata } } = programs;
+  let metadataAccount = await Metadata.getPDA(nftMintPk);
+  const metadat = await Metadata.load(solConnection, metadataAccount);
+  return metadat;
+}
 
 export const getMetadata = async (
   mint: anchor.web3.PublicKey
@@ -131,7 +139,7 @@ export const getGlobalState = async (
   let cloneWindow: any = window;
   let provider = new anchor.Provider(solConnection, cloneWindow['solana'], anchor.Provider.defaultOptions())
   const program = new anchor.Program(IDL, PROGRAM_ID, provider);
-  const [globalAuthority, bump] = await PublicKey.findProgramAddress(
+  const [globalAuthority] = await PublicKey.findProgramAddress(
     [Buffer.from(GLOBAL_AUTHORITY_SEED)],
     program.programId
   );
@@ -228,10 +236,6 @@ export const withdrawFromLottery = async (
   const nft_mint = new PublicKey(mint);
   const [globalAuthority, bump] = await PublicKey.findProgramAddress(
     [Buffer.from(GLOBAL_AUTHORITY_SEED)],
-    program.programId
-  );
-  const [poolWalletKey, walletBump] = await PublicKey.findProgramAddress(
-    [Buffer.from(POOL_WALLET_SEED)],
     program.programId
   );
   let userLotteryPoolKey = await PublicKey.createWithSeed(
@@ -368,7 +372,6 @@ export const withdrawFromFixed = async (
     program.programId,
   );
 
-  let tx = new Transaction();
   const [staked_nft_address, nft_bump] = await PublicKey.findProgramAddress(
     [Buffer.from("staked-nft"), nft_mint.toBuffer()],
     program.programId
@@ -398,20 +401,20 @@ export const withdrawFromFixed = async (
   return false;
 }
 
-const getOwnerOfNFT = async (nftMintPk: PublicKey): Promise<PublicKey> => {
-  let tokenAccountPK = await getNFTTokenAccount(nftMintPk);
-  let tokenAccountInfo = await solConnection.getAccountInfo(tokenAccountPK);
+// const getOwnerOfNFT = async (nftMintPk: PublicKey): Promise<PublicKey> => {
+//   let tokenAccountPK = await getNFTTokenAccount(nftMintPk);
+//   let tokenAccountInfo = await solConnection.getAccountInfo(tokenAccountPK);
 
-  console.log("nftMintPk=", nftMintPk.toBase58());
-  console.log("tokenAccountInfo =", tokenAccountInfo);
+//   console.log("nftMintPk=", nftMintPk.toBase58());
+//   console.log("tokenAccountInfo =", tokenAccountInfo);
 
-  if (tokenAccountInfo && tokenAccountInfo.data) {
-    let ownerPubkey = new PublicKey(tokenAccountInfo.data.slice(32, 64))
-    console.log("ownerPubkey=", ownerPubkey.toBase58());
-    return ownerPubkey;
-  }
-  return new PublicKey("");
-}
+//   if (tokenAccountInfo && tokenAccountInfo.data) {
+//     let ownerPubkey = new PublicKey(tokenAccountInfo.data.slice(32, 64))
+//     console.log("ownerPubkey=", ownerPubkey.toBase58());
+//     return ownerPubkey;
+//   }
+//   return new PublicKey("");
+// }
 
 const getTokenAccount = async (mintPk: PublicKey, userPk: PublicKey): Promise<PublicKey> => {
   let tokenAccount = await solConnection.getProgramAccounts(
@@ -467,37 +470,37 @@ const getNFTTokenAccount = async (nftMintPk: PublicKey): Promise<PublicKey> => {
 }
 
 
-const getAssociatedTokenAccount = async (ownerPubkey: PublicKey, mintPk: PublicKey): Promise<PublicKey> => {
-  let associatedTokenAccountPubkey = (await PublicKey.findProgramAddress(
-    [
-      ownerPubkey.toBuffer(),
-      TOKEN_PROGRAM_ID.toBuffer(),
-      mintPk.toBuffer(), // mint address
-    ],
-    ASSOCIATED_TOKEN_PROGRAM_ID
-  ))[0];
-  return associatedTokenAccountPubkey;
-}
-const createReceiveTokenAccountIx = async (receiverPK: PublicKey, mintPk: PublicKey) => {
-  const tempNFTTokenAccountKeypair = new Keypair();
-  console.log("tempNFTTokenAccountKeypair =", tempNFTTokenAccountKeypair);
-  const createTempTokenAccountIx = SystemProgram.createAccount({
-    programId: TOKEN_PROGRAM_ID,
-    space: AccountLayout.span,
-    lamports: await solConnection.getMinimumBalanceForRentExemption(
-      AccountLayout.span
-    ),
-    fromPubkey: receiverPK,
-    newAccountPubkey: tempNFTTokenAccountKeypair.publicKey,
-  });
-  const initTempAccountIx = Token.createInitAccountInstruction(
-    TOKEN_PROGRAM_ID,
-    mintPk,
-    tempNFTTokenAccountKeypair.publicKey,
-    receiverPK
-  );
-  return {
-    tempNFTTokenAccountKeypair, createTempTokenAccountIx, initTempAccountIx
-  }
-}
+// const getAssociatedTokenAccount = async (ownerPubkey: PublicKey, mintPk: PublicKey): Promise<PublicKey> => {
+//   let associatedTokenAccountPubkey = (await PublicKey.findProgramAddress(
+//     [
+//       ownerPubkey.toBuffer(),
+//       TOKEN_PROGRAM_ID.toBuffer(),
+//       mintPk.toBuffer(), // mint address
+//     ],
+//     ASSOCIATED_TOKEN_PROGRAM_ID
+//   ))[0];
+//   return associatedTokenAccountPubkey;
+// }
+// const createReceiveTokenAccountIx = async (receiverPK: PublicKey, mintPk: PublicKey) => {
+//   const tempNFTTokenAccountKeypair = new Keypair();
+//   console.log("tempNFTTokenAccountKeypair =", tempNFTTokenAccountKeypair);
+//   const createTempTokenAccountIx = SystemProgram.createAccount({
+//     programId: TOKEN_PROGRAM_ID,
+//     space: AccountLayout.span,
+//     lamports: await solConnection.getMinimumBalanceForRentExemption(
+//       AccountLayout.span
+//     ),
+//     fromPubkey: receiverPK,
+//     newAccountPubkey: tempNFTTokenAccountKeypair.publicKey,
+//   });
+//   const initTempAccountIx = Token.createInitAccountInstruction(
+//     TOKEN_PROGRAM_ID,
+//     mintPk,
+//     tempNFTTokenAccountKeypair.publicKey,
+//     receiverPK
+//   );
+//   return {
+//     tempNFTTokenAccountKeypair, createTempTokenAccountIx, initTempAccountIx
+//   }
+// }
 

@@ -1,13 +1,14 @@
 
 import BN from 'bn.js';
-import {PublicKey, Keypair, AccountInfo} from '@solana/web3.js';
+import { PublicKey, Keypair, AccountInfo } from '@solana/web3.js';
 import fs from 'fs';
 import { toast } from 'react-toastify';
 
 export function getDateStr(timestamp: any) {
   let d = new Date(timestamp * 1000);
-  return d.getFullYear() + "/" + (d.getMonth()+1) + "/"
-   + (d.getDate()) + " " + d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+  // return d.getFullYear() + "/" + (d.getMonth()+1) + "/"
+  //  + (d.getDate()) + " " + d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+  return timestamp * 1000
 }
 export function getReward(timestamp: any) {
   let d = new Date(timestamp * 1000);
@@ -16,71 +17,71 @@ export function getReward(timestamp: any) {
   return Math.floor(time) * 0.02;
 }
 export function chunks(array: Uint8Array, size: number) {
-    return Array.apply(0, new Array(Math.ceil(array.length / size))).map(
-      (_, index) => array.slice(index * size, (index + 1) * size),
-    );
-  }
-  
+  return Array.apply(0, new Array(Math.ceil(array.length / size))).map(
+    (_, index) => array.slice(index * size, (index + 1) * size),
+  );
+}
+
 export const loadWalletKey = (keypair: string): Keypair => {
-    if (!keypair || keypair === '') {
-      throw new Error('Keypair is required!');
-    }
-    const loaded = Keypair.fromSecretKey(
-      new Uint8Array(JSON.parse(fs.readFileSync(keypair).toString())),
-    );
-    return loaded;
+  if (!keypair || keypair === '') {
+    throw new Error('Keypair is required!');
   }
-  
-  export const writePublicKey = (publicKey: PublicKey, name: string) => {
-    fs.writeFileSync(
-      `./keys/${name}_pub.json`,
-      JSON.stringify(publicKey.toString())
-    );
-  };
-  
-  export const getPublicKey = (name: string) =>
-    new PublicKey(
-      JSON.parse(fs.readFileSync(`./keys/${name}_pub.json`) as unknown as string)
-    );
-  
-    export const getFormattedPrice = (price: BN) => {
-        if (price === undefined) return "---";
-        let priceStr = price.toString();
-        if (priceStr.length < 6) return "0";
-        let floatStr = priceStr.substring(priceStr.length - 9, priceStr.length);
-        if (floatStr.length === 6) floatStr = '0.000' + floatStr;
-        else if (floatStr.length === 7) floatStr = '0.00' + floatStr;
-        else if (floatStr.length === 8) floatStr = '0.0' + floatStr;
-        else if (priceStr.length === 9) floatStr = '0.' + floatStr;
-        else floatStr = priceStr.substring(0, priceStr.length - 9 ) + '.' + floatStr;
-      
-        let cutIdx = floatStr.length-1;
-        for (; cutIdx >= 0 ; cutIdx--)
-          if (floatStr[cutIdx] !== '0') break;
-        return floatStr.substring(0, cutIdx+1);
-      }
+  const loaded = Keypair.fromSecretKey(
+    new Uint8Array(JSON.parse(fs.readFileSync(keypair).toString())),
+  );
+  return loaded;
+}
 
-      export const showToast = (txt: string, ty: number) => {
-        let type = toast.TYPE.SUCCESS;
-        if (ty === 1) type = toast.TYPE.ERROR;
-        toast.error(txt, {
-          position: "bottom-left",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          type,
-          theme: 'colored'
-        });
-      }
+export const writePublicKey = (publicKey: PublicKey, name: string) => {
+  fs.writeFileSync(
+    `./keys/${name}_pub.json`,
+    JSON.stringify(publicKey.toString())
+  );
+};
 
-      export const decoratePubKey = (key: PublicKey) => {
-        let str = key.toBase58();
-        let len = str.length;
-        return str.substring(0, 5) + '...' + str.substring(len - 5, len);
-      }
+export const getPublicKey = (name: string) =>
+  new PublicKey(
+    JSON.parse(fs.readFileSync(`./keys/${name}_pub.json`) as unknown as string)
+  );
+
+export const getFormattedPrice = (price: BN) => {
+  if (price === undefined) return "---";
+  let priceStr = price.toString();
+  if (priceStr.length < 6) return "0";
+  let floatStr = priceStr.substring(priceStr.length - 9, priceStr.length);
+  if (floatStr.length === 6) floatStr = '0.000' + floatStr;
+  else if (floatStr.length === 7) floatStr = '0.00' + floatStr;
+  else if (floatStr.length === 8) floatStr = '0.0' + floatStr;
+  else if (priceStr.length === 9) floatStr = '0.' + floatStr;
+  else floatStr = priceStr.substring(0, priceStr.length - 9) + '.' + floatStr;
+
+  let cutIdx = floatStr.length - 1;
+  for (; cutIdx >= 0; cutIdx--)
+    if (floatStr[cutIdx] !== '0') break;
+  return floatStr.substring(0, cutIdx + 1);
+}
+
+export const showToast = (txt: string, ty: number) => {
+  let type = toast.TYPE.SUCCESS;
+  if (ty === 1) type = toast.TYPE.ERROR;
+  toast.error(txt, {
+    position: "bottom-left",
+    autoClose: 5000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    progress: undefined,
+    type,
+    theme: 'colored'
+  });
+}
+
+export const decoratePubKey = (key: PublicKey) => {
+  let str = key.toBase58();
+  let len = str.length;
+  return str.substring(0, 5) + '...' + str.substring(len - 5, len);
+}
 
 
 
@@ -162,7 +163,7 @@ export const METAPLEX_ID =
   'p1exdMJcjVao65QdewkaZRUnU6VPSXhus9n2GzWfh98' as StringPublicKey;
 
 export const SYSTEM = new PublicKey('11111111111111111111111111111111');
-      
+
 export const setProgramIds = async (store?: string) => {
   STORE = store ? toPublicKey(store) : undefined;
 };

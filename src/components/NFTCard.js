@@ -10,7 +10,6 @@ import {
   getFixedState,
   getGlobalState
 } from '../contexts/helpers';
-import { getDateStr, getReward } from '../contexts/utils';
 import { useWallet } from "@solana/wallet-adapter-react";
 
 export default function NFTCard({
@@ -18,6 +17,7 @@ export default function NFTCard({
   state,
   name,
   data,
+  stakedTime,
   tokenAddress,
   ...props
 }) {
@@ -25,11 +25,13 @@ export default function NFTCard({
   const [lotteryState, setLotteryState] = useState({ itemCount: 0, items: [] });
   const [fixedState, setFixedState] = useState({ itemCount: 0, items: [] });
   const [globalState, setGlobalState] = useState({ lotteryNftCount: 0, fixedNftCount: 0 });
+
+  const [lock, setLock] = useState(false)
+
   const wallet = useWallet();
   const ref = useRef(null);
 
   const updateLotteryPoolState = (addr) => {
-    console.log("updateLotteryPoolState");
     getLotteryState(addr).then(result => {
       if (result !== null) {
         setLotteryState({
@@ -92,6 +94,14 @@ export default function NFTCard({
   useEffect(() => {
     setWidth(ref.current.clientWidth);
   })
+
+  useEffect(() => {
+    const now = new Date();
+    const stakedT = new Date(stakedTime + 3600 * 24 * 15 * 1000)
+    if (stakedT > now) {
+      setLock(true)
+    }
+  }, [])
   return (
     <div className="nft-card" ref={ref}>
       {image === undefined &&
@@ -103,12 +113,12 @@ export default function NFTCard({
       />
       <p>{name}</p>
       {state === 0 &&
-        <button className="unstake-button" onClick={() => onWithdrawFromLottery(tokenAddress)}>
+        <button className="unstake-button" onClick={() => onWithdrawFromLottery(tokenAddress)} disabled={lock}>
           unstake
         </button>
       }
       {state === 1 &&
-        <button className="unstake-button" onClick={() => onWithdrawFromFixed(tokenAddress)}>
+        <button className="unstake-button" onClick={() => onWithdrawFromFixed(tokenAddress)} disabled={lock}>
           unstake
         </button>
       }

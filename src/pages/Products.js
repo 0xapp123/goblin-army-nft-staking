@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useEffect } from 'react';
-import { Stack, Grid } from '@mui/material';
 import Page from '../components/Page';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -9,33 +8,38 @@ import {
   getLotteryState,
   getFixedState,
   getGlobalState,
-  solConnection
+  solConnection,
+  getNftMetaData
 } from '../contexts/helpers';
 import { getDateStr, getReward } from '../contexts/utils';
 import TotalView from '../components/TotalView'
 import NFTCard from '../components/NFTCard';
 import { getParsedNftAccountsByOwner } from "@nfteyez/sol-rayz";
+import { PublicKey } from '@solana/web3.js';
 
 export default function EcommerceShop() {
   const [lotteryState, setLotteryState] = useState({ itemCount: 0, items: [] });
   const [fixedState, setFixedState] = useState({ itemCount: 0, items: [] });
   const [globalState, setGlobalState] = useState({ lotteryNftCount: 0, fixedNftCount: 0 });
   const wallet = useWallet();
-  const [claimReward, setClaimReward] = useState(0)
+  const [claimReward, setClaimReward] = useState(0);
+  const [loading, setLoading] = useState(false)
 
-  // const { nfts } = useWalletNfts({
-  //   publicAddress: "Fe4KejEc1pgo6MxjfRGYL1u5qMpYN7FMxPKYjbrdsFFE",
-  //   // connection,
-  // });
+  const [tab, setTab] = useState("staked")
+  const [unstakedNftList, setUnstakedNFTList] = useState([])
+  const [lotteryNftList, setLotteryNftList] = useState([])
+  const [fixedNftList, setFixedNftList] = useState([])
 
   const updateLotteryPoolState = (addr) => {
-    console.log("updateLotteryPoolState");
     getLotteryState(addr).then(result => {
       if (result !== null) {
         setLotteryState({
           itemCount: result.itemCount.toNumber(),
           items: result.items.slice(0, result.itemCount.toNumber())
         })
+        // make new array include metadata from data
+        setLotteryArray(result.items.slice(0, result.itemCount.toNumber()))
+
         getClaimReward(result.items.slice(0, result.itemCount.toNumber()))
       }
     })
@@ -62,6 +66,8 @@ export default function EcommerceShop() {
           itemCount: result.itemCount.toNumber(),
           items: result.items.slice(0, result.itemCount.toNumber())
         })
+        // make new array include metadata from data
+        setFixedArray(result.items.slice(0, result.itemCount.toNumber()))
       }
     })
     getGlobalState().then(result => {
@@ -72,11 +78,8 @@ export default function EcommerceShop() {
     })
   }
 
-  const [tab, setTab] = useState("staked")
-  const [nftList, setNFTList] = useState([])
-
-  let nftDump = []
   const setNFTArray = (nfts) => {
+    let nftDump = []
     nfts.map((item) => (
       fetch(item.data.uri)
         .then(resp =>
@@ -92,25 +95,81 @@ export default function EcommerceShop() {
           // }
         })
     ))
-    setNFTList(nftDump)
+    setUnstakedNFTList(nftDump)
   }
-  // get nft metadata from mint address
+
+  const setLotteryArray = async (data) => {
+    let nftDump = []
+    if (data !== undefined && data.length !== 0) {
+      data.map(async (item) => {
+        const nft = await getNFTs(item.nftAddr.toBase58());
+        await fetch(nft.data.data.uri)
+          .then(resp =>
+            resp.json()
+          ).then((json) => {
+            nftDump.push({
+              "name": json.name,
+              "image": json.image,
+              "mint": item.nftAddr.toBase58(),
+              "stakedTime": getDateStr(item.stakeTime)
+            })
+          })
+      }
+      )
+      setLotteryNftList(nftDump);
+    }
+  }
+
+  const setFixedArray = async (data) => {
+    let nftDump = []
+    if (data !== undefined && data.length !== 0) {
+      data.map(async (item) => {
+        const nft = await getNFTs(item.nftAddr.toBase58());
+        await fetch(nft.data.data.uri)
+          .then(resp =>
+            resp.json()
+          ).then((json) => {
+            nftDump.push({
+              "name": json.name,
+              "image": json.image,
+              "mint": item.nftAddr.toBase58(),
+              "stakedTime": getDateStr(item.stakeTime)
+            })
+          })
+      }
+      )
+      setFixedNftList(nftDump);
+    }
+  }
+
   const getMetadataDetail = async () => {
     const nftsList = await getParsedNftAccountsByOwner({ publicAddress: wallet.publicKey, connection: solConnection });
     return nftsList;
   }
 
+  // get nft metadata from mint address
+  const getNFTs = async (nft_mint) => {
+    const pubkey = new PublicKey(nft_mint)
+    const metadata = await getNftMetaData(pubkey)
+    return metadata;
+  }
+
   useEffect(async () => {
-    updateLotteryPoolState(wallet.publicKey);
-    updateFixedPoolState(wallet.publicKey);
     if (wallet.publicKey !== null) {
-      const nftList = await getMetadataDetail()
-      if (nftList.length !== 0) {
-        setNFTArray(nftList)
+      updateLotteryPoolState(wallet.publicKey);
+      updateFixedPoolState(wallet.publicKey);
+      const unstakedNftList = await getMetadataDetail()
+      if (unstakedNftList.length !== 0) {
+        setNFTArray(unstakedNftList)
       }
+      setLotteryArray()
     }
 
   }, [wallet])
+
+  // useEffect(() => {
+  //   updateLotteryPoolState(wallet.publicKey)
+  // }, [lotteryNftList])
 
   return (
     <Page title="Goblin Army | Product, Stake, Unstake, and Claim">
@@ -126,7 +185,7 @@ export default function EcommerceShop() {
               Stakend NFTs({lotteryState.itemCount + fixedState.itemCount})
             </div>
             <div className={tab === "unstaked" ? "nfts-tab-item active" : "nfts-tab-item"} onClick={() => setTab("unstaked")}>
-              Untakend NFTs({nftList.length})
+              Untakend NFTs({unstakedNftList.length})
             </div>
           </div>
           {tab === "staked" &&
@@ -135,9 +194,16 @@ export default function EcommerceShop() {
                 <h2>Lottery Pool({lotteryState.itemCount})</h2>
                 <div className="cards-galley">
                   {
-                    lotteryState.items.map((item, id) => (
+                    lotteryNftList.length !== 0 && lotteryNftList.map((item, id) => (
                       // <h6 key={id}>{getDateStr(item.stakeTime) + " >>> " + item.nftAddr.toBase58()}</h6>
-                      <NFTCard state={0} tokenAddress={item.nftAddr.toBase58()} key={id} />
+                      <NFTCard
+                        state={0}
+                        name={item.name}
+                        image={item.image}
+                        tokenAddress={item.mint}
+                        stakedTime={item.stakedTime}
+                        key={id}
+                      />
                     ))
                   }
                 </div>
@@ -146,11 +212,24 @@ export default function EcommerceShop() {
                 <h2>Fixed Pool({fixedState.itemCount})</h2>
                 <div className="cards-galley">
                   {
+                    fixedNftList.length !== 0 && fixedNftList.map((item, id) => (
+                      // <h6 key={id}>{getDateStr(item.stakeTime) + " >>> " + item.nftAddr.toBase58()}</h6>
+                      <NFTCard
+                        state={0}
+                        name={item.name}
+                        image={item.image}
+                        tokenAddress={item.mint}
+                        stakedTime={item.stakedTime}
+                        key={id}
+                      />
+                    ))
+                  }
+                  {/* {
                     fixedState.items.map((item, id) => (
                       // <h6 key={id}>{getDateStr(item.stakeTime) + "<<<  " + getReward(item.stakeTime) + "SOL  >>> " + item.nftAddr.toBase58()}</h6>
                       <NFTCard state={1} tokenAddress={item.nftAddr.toBase58()} key={id} />
                     ))
-                  }
+                  } */}
                 </div>
               </div>
             </div>
@@ -158,7 +237,7 @@ export default function EcommerceShop() {
           {tab === "unstaked" &&
             <div className="unstaked-nfts">
               <div className="cards-galley">
-                {nftList.length !== 0 && nftList.map((item, key) => (
+                {unstakedNftList.length !== 0 && unstakedNftList.map((item, key) => (
                   <NFTCard
                     state={2}
                     name={item.name}

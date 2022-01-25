@@ -11,7 +11,7 @@ import { Container } from '@mui/material';
 import bannerImage from '../../assets/img/banner.png'
 // ----------------------------------------------------------------------
 
-const APP_BAR_MOBILE = 64;
+// const APP_BAR_MOBILE = 64;
 const APP_BAR_DESKTOP = 92;
 
 const MainStyle = styled('div')(({ theme }) => ({
@@ -35,7 +35,7 @@ export default function DashboardLayout() {
       <Container>
         <SnackbarProvider>
           <Wallets>
-            <DashboardNavbar onOpenSidebar={() => setOpen(true)} />
+            <DashboardNavbar onOpenSidebar={() => setOpen(true)} open={open} />
             <MainStyle>
               <Outlet />
             </MainStyle>

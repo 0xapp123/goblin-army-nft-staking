@@ -165,7 +165,7 @@ export class EditionMarker {
 
     const appliedMask = this.ledger[indexOffset] & mask;
 
-    return appliedMask != 0;
+    return appliedMask !== 0;
   }
 }
 
@@ -479,7 +479,7 @@ export const decodeEdition = (buffer: Buffer) => {
 export const decodeMasterEdition = (
   buffer: Buffer,
 ): MasterEditionV1 | MasterEditionV2 => {
-  if (buffer[0] == MetadataKey.MasterEditionV1) {
+  if (buffer[0] === MetadataKey.MasterEditionV1) {
     return deserializeUnchecked(
       METADATA_SCHEMA,
       MasterEditionV1,
