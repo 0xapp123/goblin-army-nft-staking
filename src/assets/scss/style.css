@@ -1,0 +1,259 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+* {
+  font-family: "Poppins";
+}
+button {
+  cursor: pointer;
+}
+.page-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px;
+}
+.page {
+  overflow: hidden;
+  position: relative;
+  min-height: 100vh;
+}
+.background-img {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  min-width: 1440px;
+  z-index: -1;
+  transform: translateX(-50%);
+}
+.total-view {
+  border: 2px solid #064a3a;
+  border-radius: 20px;
+  display: flex;
+  padding: 20px;
+}
+.total-claim {
+  width: 60%;
+  border-right: 1px solid #000;
+}
+.staked-nfts-view {
+  width: 40%;
+}
+.total-claim h2 {
+  font-size: 20px;
+}
+.value-claim {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: 30px;
+}
+
+.value-claim h1 {
+  font-size: 60px;
+  font-weight: 800;
+  margin-right: 20px;
+}
+.value-claim h1 span {
+  font-size: 36px;
+  font-weight: bold;
+  margin-left: 10px;
+}
+.claim-button {
+  padding: 15px 40px;
+  border: none;
+  background-color: #590050;
+  font-size: 24px;
+  font-weight: 600;
+  color: #fff;
+  text-transform: uppercase;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.claim-button:hover {
+  background-color: #41013a;
+  transition: all 0.3s;
+}
+
+.staked-nfts-view {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.staked-nfts-view-item {
+  display: flex;
+  justify-content: space-between;
+  margin-left: 20px;
+  padding: 5px 0;
+  align-items: end;
+}
+.staked-nfts-view-item p {
+  font-size: 18px;
+  font-weight: 500;
+}
+.staked-nfts-view-item h5 {
+  font-size: 24px;
+  font-weight: 800;
+}
+.nfts-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 30px;
+}
+.nfts-tab-item {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0 10px;
+  color: #555;
+  margin: 0 10px;
+  padding: 10px;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+
+.nfts-tab-item.active {
+  color: #000;
+  border-color: #000;
+}
+
+.fixed-pool {
+  width: calc(50% - 10px);
+  padding-left: 10px;
+}
+.lottery-pool {
+  width: calc(50% - 10px);
+  padding-right: 10px;
+}
+
+.fixed-pool h2,
+.lottery-pool h2 {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.nft-card {
+  width: calc(50% - 20px);
+  margin-right: 10px;
+  margin-left: 10px;
+  border-radius: 20px;
+  padding: 10px 10px 15px 10px;
+  background: #fff;
+  box-shadow: 0 0 20px #0000007a;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.cards-galley {
+  display: flex;
+  flex-wrap: wrap;
+}
+.nft-card img {
+  width: 100%;
+  border-radius: 12px;
+}
+.nft-card p {
+  font-size: 18px;
+  font-weight: 800;
+  padding: 5px 0;
+  text-align: left;
+}
+
+.nft-card button {
+  padding: 3px 10px;
+  margin: 0 auto;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+}
+
+.unstake-button {
+  background: #9f0000;
+}
+.fixed-stake-button {
+  width: 100%;
+  background: #365cc7;
+  margin-bottom: 5px !important;
+}
+.fixed-stake-button:hover {
+  background: #2747a1;
+}
+.lottery-stake-button {
+  width: 100%;
+  background: #04a192;
+}
+.lottery-stake-button:hover {
+  background: #047267;
+}
+.staked-nfts {
+  display: flex;
+  margin-top: 20px;
+}
+.unstaked-nfts .cards-galley {
+  margin-top: 40px;
+}
+.unstaked-nfts .cards-galley .nft-card {
+  width: calc(25% - 20px);
+}
+@media (max-width: 992px) {
+  .unstaked-nfts .cards-galley .nft-card {
+    width: calc(33.33% - 20px);
+  }
+  .total-view {
+    flex-direction: column;
+  }
+  .total-claim {
+    width: 100%;
+    border-right: none;
+  }
+  .staked-nfts-view {
+    width: 100%;
+  }
+  .value-claim h1 {
+    font-size: 40px;
+  }
+  .value-claim h1 span {
+    font-size: 24px;
+  }
+  .value-claim {
+    padding-right: 0;
+    justify-content: space-between;
+  }
+  .claim-button {
+    padding: 10px 40px;
+    font-size: 18px;
+  }
+}
+@media (max-width: 762px) {
+  .unstaked-nfts .cards-galley .nft-card {
+    width: calc(50% - 20px);
+  }
+  .nfts-tab-item {
+    font-size: 16px;
+    margin: 0 5px;
+    padding: 0;
+  }
+  .nft-card button {
+    padding: 3px 5px;
+    font-size: 10px;
+  }
+  .staked-nfts {
+    flex-direction: column;
+  }
+  .lottery-pool,
+  .fixed-pool {
+    width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .fixed-pool h2,
+  .lottery-pool h2 {
+    padding: 16px 0;
+    font-size: 18px;
+  }
+}

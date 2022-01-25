@@ -9,20 +9,36 @@ import {
 } from '@solana/web3.js';
 import { Token, TOKEN_PROGRAM_ID, AccountLayout } from "@solana/spl-token";
 import * as anchor from '@project-serum/anchor';
-import { showToast } from './utils';
+import { showToast, METADATA_PROGRAM_ID } from './utils';
 import { WalletContextState } from '@solana/wallet-adapter-react';
 import { IDL } from './anchor_idl/idl/staking_program';
 
-const solConnection = new web3.Connection(web3.clusterApiUrl("devnet"));
+export const solConnection = new web3.Connection(web3.clusterApiUrl("devnet"));
 
 const ASSOCIATED_TOKEN_PROGRAM_ID: PublicKey = new PublicKey(
   'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL',
 );
+const TOKEN_METADATA_PROGRAM_ID: PublicKey = new PublicKey(METADATA_PROGRAM_ID);
 const PROGRAM_ID = "FbaMJWS14yAPH68LwFAHxaBSukgBHnAY9VaEfhFxWerb";
 
 const GLOBAL_AUTHORITY_SEED = "global-authority";
 const POOL_WALLET_SEED = "pool-wallet";
 const POOL_SIZE = 2048;
+
+export const getMetadata = async (
+  mint: anchor.web3.PublicKey
+): Promise<anchor.web3.PublicKey> => {
+  return (
+    await anchor.web3.PublicKey.findProgramAddress(
+      [
+        Buffer.from("metadata"),
+        TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+        mint.toBuffer(),
+      ],
+      TOKEN_METADATA_PROGRAM_ID
+    )
+  )[0];
+};
 
 export const initProject = async (
   wallet: WalletContextState
@@ -65,6 +81,7 @@ export const getLotteryState = async (
   userAddress: PublicKey
 ): Promise<Object | null> => {
   console.log("getLotteryState userAddress =", userAddress);
+
   if (!userAddress) return null;
   let cloneWindow: any = window;
   let provider = new anchor.Provider(solConnection, cloneWindow['solana'], anchor.Provider.defaultOptions())
@@ -79,6 +96,7 @@ export const getLotteryState = async (
   console.log("userAddress = ", userAddress.toBase58());
   console.log("userLotteryPoolKey = ", userLotteryPoolKey.toBase58());
   let lotteryPoolState = await program.account.userPool.fetch(userLotteryPoolKey);
+
   console.log("lotteryPoolState = ", lotteryPoolState);
   return lotteryPoolState;
   //} catch {
@@ -113,7 +131,6 @@ export const getGlobalState = async (
   let cloneWindow: any = window;
   let provider = new anchor.Provider(solConnection, cloneWindow['solana'], anchor.Provider.defaultOptions())
   const program = new anchor.Program(IDL, PROGRAM_ID, provider);
-  // eslint-disable-next-line
   const [globalAuthority, bump] = await PublicKey.findProgramAddress(
     [Buffer.from(GLOBAL_AUTHORITY_SEED)],
     program.programId
@@ -213,7 +230,6 @@ export const withdrawFromLottery = async (
     [Buffer.from(GLOBAL_AUTHORITY_SEED)],
     program.programId
   );
-  // eslint-disable-next-line
   const [poolWalletKey, walletBump] = await PublicKey.findProgramAddress(
     [Buffer.from(POOL_WALLET_SEED)],
     program.programId
@@ -351,7 +367,7 @@ export const withdrawFromFixed = async (
     "user-fixed-pool",
     program.programId,
   );
-  // eslint-disable-next-line
+
   let tx = new Transaction();
   const [staked_nft_address, nft_bump] = await PublicKey.findProgramAddress(
     [Buffer.from("staked-nft"), nft_mint.toBuffer()],
@@ -381,7 +397,7 @@ export const withdrawFromFixed = async (
   console.log("txHash =", txHash);
   return false;
 }
-// eslint-disable-next-line
+
 const getOwnerOfNFT = async (nftMintPk: PublicKey): Promise<PublicKey> => {
   let tokenAccountPK = await getNFTTokenAccount(nftMintPk);
   let tokenAccountInfo = await solConnection.getAccountInfo(tokenAccountPK);
@@ -450,7 +466,7 @@ const getNFTTokenAccount = async (nftMintPk: PublicKey): Promise<PublicKey> => {
   return tokenAccount[0].pubkey;
 }
 
-// eslint-disable-next-line
+
 const getAssociatedTokenAccount = async (ownerPubkey: PublicKey, mintPk: PublicKey): Promise<PublicKey> => {
   let associatedTokenAccountPubkey = (await PublicKey.findProgramAddress(
     [
@@ -462,7 +478,6 @@ const getAssociatedTokenAccount = async (ownerPubkey: PublicKey, mintPk: PublicK
   ))[0];
   return associatedTokenAccountPubkey;
 }
-// eslint-disable-next-line
 const createReceiveTokenAccountIx = async (receiverPK: PublicKey, mintPk: PublicKey) => {
   const tempNFTTokenAccountKeypair = new Keypair();
   console.log("tempNFTTokenAccountKeypair =", tempNFTTokenAccountKeypair);

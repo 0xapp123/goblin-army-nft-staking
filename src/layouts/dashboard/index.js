@@ -7,23 +7,18 @@ import DashboardNavbar from './DashboardNavbar';
 import { Wallets } from '../../components/wallet'
 
 import { SnackbarProvider } from 'notistack';
-
+import { Container } from '@mui/material';
+import bannerImage from '../../assets/img/banner.png'
 // ----------------------------------------------------------------------
 
 const APP_BAR_MOBILE = 64;
 const APP_BAR_DESKTOP = 92;
 
-const RootStyle = styled('div')({
-  display: 'flex',
-  minHeight: '100%',
-  overflow: 'hidden'
-});
-
 const MainStyle = styled('div')(({ theme }) => ({
   flexGrow: 1,
   overflow: 'auto',
   minHeight: '100%',
-  paddingTop: APP_BAR_MOBILE + 24,
+  paddingTop: 20,
   paddingBottom: theme.spacing(10),
   [theme.breakpoints.up('xl')]: {
     paddingTop: APP_BAR_DESKTOP + 24,
@@ -33,20 +28,25 @@ const MainStyle = styled('div')(({ theme }) => ({
 // ----------------------------------------------------------------------
 
 export default function DashboardLayout() {
-  // eslint-disable-next-line
   const [open, setOpen] = useState(false);
 
   return (
-    <RootStyle>
-
-      <SnackbarProvider>
-        <Wallets>
-          <DashboardNavbar onOpenSidebar={() => setOpen(true)} />
-          <MainStyle>
-            <Outlet />
-          </MainStyle>
-        </Wallets>
-      </SnackbarProvider>
-    </RootStyle>
+    <div className="page">
+      <Container>
+        <SnackbarProvider>
+          <Wallets>
+            <DashboardNavbar onOpenSidebar={() => setOpen(true)} />
+            <MainStyle>
+              <Outlet />
+            </MainStyle>
+          </Wallets>
+        </SnackbarProvider>
+      </Container>
+      <img
+        src={bannerImage}
+        className="background-img"
+        alt=""
+      />
+    </div>
   );
 }

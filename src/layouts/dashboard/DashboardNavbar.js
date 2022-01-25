@@ -1,47 +1,11 @@
 import PropTypes from 'prop-types';
-// material
-import { alpha, styled } from '@mui/material/styles';
-import { AppBar, Toolbar, Grid } from '@mui/material';
+import { Link } from 'react-router-dom';
 // components
-
+import logo from '../../assets/img/logo.png'
 //
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-} from '@material-ui/core';
-
 import {
   WalletMultiButton as MaterialUIWalletMultiButton,
 } from '@solana/wallet-adapter-material-ui';
-
-
-// ----------------------------------------------------------------------
-
-const DRAWER_WIDTH = 0;
-const APPBAR_MOBILE = 34;
-const APPBAR_DESKTOP = 60;
-
-const RootStyle = styled(AppBar)(({ theme }) => ({
-  boxShadow: 'none',
-  backdropFilter: 'blur(6px)',
-  WebkitBackdropFilter: 'blur(6px)', // Fix on Mobile
-  backgroundColor: alpha(theme.palette.background.default, 0.72),
-  [theme.breakpoints.up('xl')]: {
-    width: `calc(100% - ${DRAWER_WIDTH + 1}px)`
-  }
-}));
-
-const ToolbarStyle = styled(Toolbar)(({ theme }) => ({
-  minHeight: APPBAR_MOBILE,
-  [theme.breakpoints.up('xl')]: {
-    minHeight: APPBAR_DESKTOP,
-    padding: theme.spacing(0, 5)
-  }
-}));
-
-// ----------------------------------------------------------------------
 
 DashboardNavbar.propTypes = {
   onOpenSidebar: PropTypes.func
@@ -49,24 +13,18 @@ DashboardNavbar.propTypes = {
 
 export default function DashboardNavbar({ onOpenSidebar }) {
   return (
-    <RootStyle>
-      <ToolbarStyle>
-        <Grid container>
-          <Grid item xs={10}>
-          </Grid>
-          <Grid item xs={2}>
-            <Table>
-              <TableBody>
-                <TableRow>
-                  <TableCell>
-                    <MaterialUIWalletMultiButton />
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </Grid>
-        </Grid>
-      </ToolbarStyle>
-    </RootStyle>
+    <div className="page-header">
+      <div className="page-header-content">
+        <Link to={"/"}>
+          <img
+            src={logo}
+            alt=""
+          />
+        </Link>
+      </div>
+      <div>
+        <MaterialUIWalletMultiButton />
+      </div>
+    </div>
   );
 }
