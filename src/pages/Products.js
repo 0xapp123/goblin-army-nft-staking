@@ -9,21 +9,30 @@ import {
   getFixedState,
   getGlobalState,
   solConnection,
-  getNftMetaData
+  getNftMetaData,
+  claimReward
 } from '../contexts/helpers';
 import { getDateStr, getReward } from '../contexts/utils';
-import TotalView from '../components/TotalView'
+// import TotalView from '../components/TotalView'
 import NFTCard from '../components/NFTCard';
 import { getParsedNftAccountsByOwner } from "@nfteyez/sol-rayz";
 import { PublicKey } from '@solana/web3.js';
 
 export default function EcommerceShop() {
+  const [lotteryNftMint, setLotteryNFTMint] = useState("");
+  const [fixedNftMint, setFixedNFTMint] = useState("");
   const [lotteryState, setLotteryState] = useState({ itemCount: 0, items: [] });
   const [fixedState, setFixedState] = useState({ itemCount: 0, items: [] });
   const [globalState, setGlobalState] = useState({ lotteryNftCount: 0, fixedNftCount: 0 });
   const wallet = useWallet();
-  const [claimReward, setClaimReward] = useState(0);
+  const [claimRewardValue, setClaimRewardValue] = useState(0);
   const [loading, setLoading] = useState(false)
+
+  const onClaimReward = () => {
+    claimReward(wallet).then(() => {
+      updateLotteryPoolState(wallet.publicKey)
+    })
+  }
 
   const [tab, setTab] = useState("staked")
   const [unstakedNftList, setUnstakedNFTList] = useState([])
@@ -40,7 +49,7 @@ export default function EcommerceShop() {
         // make new array include metadata from data
         setLotteryArray(result.items.slice(0, result.itemCount.toNumber()))
 
-        getClaimReward(result.items.slice(0, result.itemCount.toNumber()))
+        getClaimRewardValue(result.items.slice(0, result.itemCount.toNumber()))
       }
     })
     getGlobalState().then(result => {
@@ -51,12 +60,12 @@ export default function EcommerceShop() {
     })
   }
 
-  const getClaimReward = (items) => {
+  const getClaimRewardValue = (items) => {
     let sum = 0;
     items.map((item) => {
       sum = getReward(item.stakeTime);
     })
-    setClaimReward(sum)
+    setClaimRewardValue(sum)
   }
 
   const updateFixedPoolState = (addr) => {
@@ -173,11 +182,53 @@ export default function EcommerceShop() {
 
   return (
     <Page title="Goblin Army | Product, Stake, Unstake, and Claim">
-      <TotalView
+      {/* <TotalView
         totalLottery={globalState.lotteryNftCount}
         totalFixed={globalState.fixedNftCount}
         claimReward={claimReward}
-      />
+        onClaimReward={() => onClaimReward()}
+      /> */}
+      <div className="total-view">
+        <div className="total-claim">
+          <h2>Claim reward</h2>
+          <div className="value-claim">
+            {wallet.publicKey !== null ?
+              <>
+                <h1>{parseFloat(claimRewardValue).toFixed(2)}<span>SOL</span></h1>
+
+                <button className="claim-button" onClick={() => onClaimReward()}>
+                  Claim
+                </button>
+              </>
+              :
+              <>
+                <h1 style={{ color: "#525252f2" }}>LOCKED</h1>
+                <button className="claim-button" disabled={true}>
+                  Claim
+                </button>
+              </>
+            }
+          </div>
+        </div>
+        <div className="staked-nfts-view">
+          <div className="staked-nfts-view-item" style={{ borderBottom: "1px solid #0000005c" }}>
+            <p className="title">Total staked in Lottery</p>
+            {wallet.publicKey !== null ?
+              <h5>{globalState.lotteryNftCount}&nbsp;<span>NFTs</span></h5>
+              :
+              <h5 style={{ color: "#525252f2" }}>LOCKED</h5>
+            }
+          </div>
+          <div className="staked-nfts-view-item">
+            <p className="title">Total staked in Lottery</p>
+            {wallet.publicKey !== null ?
+              <h5>{globalState.fixedNftCount}&nbsp;<span>NFTs</span></h5>
+              :
+              <h5 style={{ color: "#525252f2" }}>LOCKED</h5>
+            }
+          </div>
+        </div>
+      </div>
       {wallet.publicKey !== null &&
         <>
           <div className="nfts-tabs">
@@ -202,6 +253,9 @@ export default function EcommerceShop() {
                         image={item.image}
                         tokenAddress={item.mint}
                         stakedTime={item.stakedTime}
+                        setLotteryState={({ cnt, items }) => setLotteryState({ cnt, items })}
+                        setFixedState={({ cnt, items }) => setFixedState({ cnt, items })}
+                        setGlobalState={({ cnt, items }) => setGlobalState({ cnt, items })}
                         key={id}
                       />
                     ))
@@ -220,6 +274,9 @@ export default function EcommerceShop() {
                         image={item.image}
                         tokenAddress={item.mint}
                         stakedTime={item.stakedTime}
+                        setLotteryState={({ cnt, items }) => setLotteryState({ cnt, items })}
+                        setFixedState={({ cnt, items }) => setFixedState({ cnt, items })}
+                        setGlobalState={({ cnt, items }) => setGlobalState({ cnt, items })}
                         key={id}
                       />
                     ))
@@ -243,6 +300,9 @@ export default function EcommerceShop() {
                     name={item.name}
                     image={item.image}
                     tokenAddress={item.mint}
+                    setLotteryState={({ cnt, items }) => setLotteryState({ cnt, items })}
+                    setFixedState={({ cnt, items }) => setFixedState({ cnt, items })}
+                    setGlobalState={({ cnt, items }) => setGlobalState({ cnt, items })}
                     key={key}
                   />
                 ))

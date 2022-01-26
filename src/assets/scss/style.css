@@ -78,6 +78,10 @@ button {
   background-color: #41013a;
   transition: all 0.3s;
 }
+.claim-button:disabled {
+  background-color: #272727;
+  cursor: no-drop;
+}
 
 .staked-nfts-view {
   display: flex;

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { Skeleton } from "@mui/material";
 import {
-  initProject,
   stakeToLottery,
   withdrawFromLottery,
   stakeToFixed,
@@ -19,12 +18,15 @@ export default function NFTCard({
   data,
   stakedTime,
   tokenAddress,
+  setLotteryState,
+  setFixedState,
+  setGlobalState,
   ...props
 }) {
   const [width, setWidth] = useState(0);
-  const [lotteryState, setLotteryState] = useState({ itemCount: 0, items: [] });
-  const [fixedState, setFixedState] = useState({ itemCount: 0, items: [] });
-  const [globalState, setGlobalState] = useState({ lotteryNftCount: 0, fixedNftCount: 0 });
+  // const [lotteryState, setLotteryState] = useState({ itemCount: 0, items: [] });
+  // const [fixedState, setFixedState] = useState({ itemCount: 0, items: [] });
+  // const [globalState, setGlobalState] = useState({ lotteryNftCount: 0, fixedNftCount: 0 });
 
   const [lock, setLock] = useState(false)
 
@@ -64,12 +66,6 @@ export default function NFTCard({
     })
   }
 
-  const onInitClick = () => {
-    initProject(wallet).then(() => {
-      updateLotteryPoolState(wallet.publicKey);
-      updateFixedPoolState(wallet.publicKey);
-    });
-  }
   const onStakeToLottery = (tokenAddress) => {
     stakeToLottery(wallet, tokenAddress).then(() => {
       updateLotteryPoolState(wallet.publicKey)
