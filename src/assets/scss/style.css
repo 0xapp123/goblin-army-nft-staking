@@ -32,8 +32,10 @@ button {
 .total-view {
   border: 2px solid #064a3a;
   border-radius: 20px;
-  display: flex;
   padding: 20px;
+}
+.total-view-content {
+  display: flex;
 }
 .total-claim {
   width: 60%;
@@ -217,7 +219,15 @@ button {
   .unstaked-nfts .cards-galley .nft-card {
     width: calc(33.33% - 20px);
   }
-  .total-view {
+  .lottery-holders-content p {
+    flex-direction: column;
+  }
+  .lottery-holders-content p span,
+  .lottery-holders-content p a {
+    padding: 5px 0;
+    font-size: 12px;
+  }
+  .total-view-content {
     flex-direction: column;
   }
   .total-claim {
@@ -241,6 +251,50 @@ button {
     padding: 10px 40px;
     font-size: 18px;
   }
+}
+.lottery-holders-content {
+  margin-top: 20px;
+}
+.lottery-holders-content p {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #0000004f;
+  padding: 7px 15px;
+}
+.lottery-holders-content p:first-child {
+  border-top: 1px solid #0000004f;
+}
+.lottery-holders-content p:nth-child(2n) {
+  background-color: #00000010;
+}
+
+.lottery-holders-content p span {
+  font-weight: 800;
+  font-size: 14px;
+}
+.holders-title {
+  margin-top: 10px;
+  font-size: 12px;
+  text-align: right;
+  font-weight: 700;
+  cursor: pointer;
+}
+.holders-title:hover {
+  color: #38127e;
+}
+.lottery-holders-content p a {
+  font-weight: 700;
+  font-size: 16px;
+  color: #000;
+  text-decoration: none;
+}
+
+.lottery-holders-content p a:hover {
+  font-weight: 700;
+  font-size: 16px;
+  color: #38127e;
+  text-decoration: underline;
 }
 @media (max-width: 762px) {
   .unstaked-nfts .cards-galley .nft-card {

@@ -10,44 +10,49 @@ import {
   getGlobalState,
   solConnection,
   getNftMetaData,
-  claimReward
+  claimReward,
+  getLotteryPool
 } from '../contexts/helpers';
-import { getDateStr, getReward } from '../contexts/utils';
+import { getDateReal, getDateStr, getReward } from '../contexts/utils';
 // import TotalView from '../components/TotalView'
 import NFTCard from '../components/NFTCard';
 import { getParsedNftAccountsByOwner } from "@nfteyez/sol-rayz";
-import { PublicKey } from '@solana/web3.js';
 import SkeletonCard from '../components/SkeletonCard';
+import { Collapse } from '@mui/material';
 
 export default function Product() {
+  const wallet = useWallet();
   const [lotteryState, setLotteryState] = useState({ itemCount: 0, items: [] });
   const [fixedState, setFixedState] = useState({ itemCount: 0, items: [] });
   const [globalState, setGlobalState] = useState({ lotteryNftCount: 0, fixedNftCount: 0 });
-  const wallet = useWallet();
   const [claimRewardValue, setClaimRewardValue] = useState(0);
   const [loading, setLoading] = useState(false);
   const [forseRender, setForseRender] = useState(false);
+  const [tab, setTab] = useState(true)
+  const [unstakedNftList, setUnstakedNFTList] = useState([])
+  const [holdersOpen, setHolderOpen] = useState(false)
+  const [lotteryHoders, setLotteryHolders] = useState([])
 
   const onClaimReward = () => {
     claimReward(wallet).then(() => {
       updateLotteryPoolState(wallet.publicKey)
     })
   }
-
-  const [tab, setTab] = useState(true)
-  const [unstakedNftList, setUnstakedNFTList] = useState([])
-  const [lotteryNftList, setLotteryNftList] = useState([])
-  const [fixedNftList, setFixedNftList] = useState([])
-
+  const getLotteryHolders = async () => {
+    const data = await getLotteryPool()
+    setLotteryHolders(data.lotteryItems)
+    console.log(data.lotteryItems, "setLotteryHolderssetLotteryHolders")
+  }
   const updateLotteryPoolState = (addr) => {
-    getLotteryState(addr).then(result => {
+    setLoading(true)
+    getLotteryState(addr).then(async result => {
       if (result !== null) {
+        const list = result.items.slice(0, result.itemCount.toNumber());
+        const newList = await setNewNftArry(list)
         setLotteryState({
           itemCount: result.itemCount.toNumber(),
-          items: result.items.slice(0, result.itemCount.toNumber())
+          items: newList
         })
-        // make new array include metadata from data
-        setLotteryArray(result.items.slice(0, result.itemCount.toNumber()))
       }
     })
     getGlobalState().then(result => {
@@ -56,31 +61,48 @@ export default function Product() {
         fixedNftCount: result.fixedNftCount.toNumber()
       })
     })
+    setLoading(false)
   }
 
   const getClaimRewardValue = (rewardTime, items) => {
     let sum = 0;
-    const setData = items.map((item) => {
-      const val = getReward(Math.max(item.stakeTime, rewardTime));
+    items.map((item) => {
+      const val = getReward(Math.max(item.stakeTime.toNumber(), rewardTime));
       sum = sum + val;
-      return sum
     })
-    setClaimRewardValue(setData)
+    setClaimRewardValue(sum)
+  }
+
+  const setNewNftArry = async (list) => {
+    let nftDump = [];
+    list.map(async (item) => {
+      const nft = await getNftMetaData(item.nftAddr);
+      const uri = nft.data.data.uri;
+      fetch(uri).then(resp =>
+        resp.json()
+      ).then((json) => {
+        nftDump.push({
+          "name": json.name,
+          "image": json.image,
+          "mint": item.nftAddr.toBase58(),
+          "stakedTime": getDateStr(item.stakeTime)
+        })
+      })
+    })
+    return nftDump
   }
 
   const updateFixedPoolState = (addr) => {
-    getFixedState(addr).then(result => {
+    setLoading(true)
+    getFixedState(addr).then(async result => {
       if (result !== null) {
-        console.log("fixedState ", result.items.slice(0, result.itemCount.toNumber()));
-        // const list = result.items.slice(0, result.itemCount.toNumber());
-        // const getList
+        const list = result.items.slice(0, result.itemCount.toNumber());
+        const newList = await setNewNftArry(list)
         setFixedState({
           itemCount: result.itemCount.toNumber(),
-          items: result.items.slice(0, result.itemCount.toNumber())
+          items: newList
         })
         getClaimRewardValue(result.rewardTime.toNumber(), result.items.slice(0, result.itemCount.toNumber()))
-        // make new array include metadata from data
-        setFixedArray(result.items.slice(0, result.itemCount.toNumber()))
       }
     })
     getGlobalState().then(result => {
@@ -89,6 +111,7 @@ export default function Product() {
         fixedNftCount: result.fixedNftCount.toNumber()
       })
     })
+    setLoading(false)
   }
 
   const setNFTArray = (nfts) => {
@@ -110,64 +133,12 @@ export default function Product() {
     ))
     setUnstakedNFTList(nftDump)
     setForseRender(!forseRender)
-    setTab(tab)
     setLoading(false)
-  }
-
-  const setLotteryArray = async (data) => {
-    let nftDump = []
-    if (data !== undefined && data.length !== 0) {
-      data.map(async (item) => {
-        const nft = await getNFTs(item.nftAddr.toBase58());
-        await fetch(nft.data.data.uri)
-          .then(resp =>
-            resp.json()
-          ).then((json) => {
-            nftDump.push({
-              "name": json.name,
-              "image": json.image,
-              "mint": item.nftAddr.toBase58(),
-              "stakedTime": getDateStr(item.stakeTime)
-            })
-          })
-      }
-      )
-      setLotteryNftList(nftDump);
-    }
-  }
-
-  const setFixedArray = async (data) => {
-    let nftDump = []
-    if (data !== undefined && data.length !== 0) {
-      data.map(async (item) => {
-        const nft = await getNFTs(item.nftAddr.toBase58());
-        await fetch(nft.data.data.uri)
-          .then(resp =>
-            resp.json()
-          ).then((json) => {
-            nftDump.push({
-              "name": json.name,
-              "image": json.image,
-              "mint": item.nftAddr.toBase58(),
-              "stakedTime": getDateStr(item.stakeTime)
-            })
-          })
-      }
-      )
-      setFixedNftList(nftDump);
-    }
   }
 
   const getMetadataDetail = async () => {
     const nftsList = await getParsedNftAccountsByOwner({ publicAddress: wallet.publicKey, connection: solConnection });
     return nftsList;
-  }
-
-  // get nft metadata from mint address
-  const getNFTs = async (nft_mint) => {
-    const pubkey = new PublicKey(nft_mint)
-    const metadata = await getNftMetaData(pubkey)
-    return metadata;
   }
 
   useEffect(() => {
@@ -180,7 +151,7 @@ export default function Product() {
         if (unstakedNftList.length !== 0) {
           setNFTArray(unstakedNftList)
         }
-        setLotteryArray()
+        await getLotteryHolders()
       }
     }
     fetchData();
@@ -190,44 +161,69 @@ export default function Product() {
   return (
     <Page title="Goblin Army | Product, Stake, Unstake, and Claim">
       <div className="total-view">
-        <div className="total-claim">
-          <h2>Claim reward</h2>
-          <div className="value-claim">
-            {wallet.publicKey !== null ?
-              <>
-                <h1>{parseFloat(claimRewardValue).toFixed(2)}<span>SOL</span></h1>
 
-                <button className="claim-button" onClick={() => onClaimReward()}>
-                  Claim
-                </button>
-              </>
-              :
-              <>
-                <h1 style={{ color: "#525252f2" }}>LOCKED</h1>
-                <button className="claim-button" disabled={true}>
-                  Claim
-                </button>
-              </>
-            }
+        <div className="total-view-content">
+          <div className="total-claim">
+            <h2>Claim reward</h2>
+            <div className="value-claim">
+              {wallet.publicKey !== null ?
+                <>
+                  <h1>{parseFloat(claimRewardValue).toFixed(2)}<span>SOL</span></h1>
+
+                  <button className="claim-button" onClick={() => onClaimReward()}>
+                    Claim
+                  </button>
+                </>
+                :
+                <>
+                  <h1 style={{ color: "#525252f2" }}>LOCKED</h1>
+                  <button className="claim-button" disabled={true}>
+                    Claim
+                  </button>
+                </>
+              }
+            </div>
+          </div>
+          <div className="staked-nfts-view">
+            <div className="staked-nfts-view-item" style={{ borderBottom: "1px solid #0000005c" }}>
+              <p className="title">Total staked in Fixed</p>
+              {wallet.publicKey !== null ?
+                <h5>{globalState.fixedNftCount}&nbsp;<span>NFTs</span></h5>
+                :
+                <h5 style={{ color: "#525252f2" }}>LOCKED</h5>
+              }
+            </div>
+            <div className="staked-nfts-view-item">
+              <p className="title">Total staked in Lottery</p>
+              {wallet.publicKey !== null ?
+                <h5>{globalState.lotteryNftCount}&nbsp;<span>NFTs</span></h5>
+                :
+                <h5 style={{ color: "#525252f2" }}>LOCKED</h5>
+              }
+            </div>
           </div>
         </div>
-        <div className="staked-nfts-view">
-          <div className="staked-nfts-view-item" style={{ borderBottom: "1px solid #0000005c" }}>
-            <p className="title">Total staked in Lottery</p>
-            {wallet.publicKey !== null ?
-              <h5>{globalState.lotteryNftCount}&nbsp;<span>NFTs</span></h5>
+        <div className="lottery-holders">
+          <div className="holders-title" onClick={() => setHolderOpen(!holdersOpen)}>
+            {!holdersOpen ?
+              <>Show Holders of lottery pool</>
               :
-              <h5 style={{ color: "#525252f2" }}>LOCKED</h5>
+              <>Hide Holders of lottery pool</>
             }
           </div>
-          <div className="staked-nfts-view-item">
-            <p className="title">Total staked in Fixed</p>
-            {wallet.publicKey !== null ?
-              <h5>{globalState.fixedNftCount}&nbsp;<span>NFTs</span></h5>
-              :
-              <h5 style={{ color: "#525252f2" }}>LOCKED</h5>
-            }
-          </div>
+          <Collapse in={holdersOpen}>
+            <div className="lottery-holders-content">
+              {/* {lotteryHoders} */}
+              {lotteryHoders.length !== 0 && lotteryHoders.map((item, key) => (
+                key < globalState.lotteryNftCount &&
+                <p key={key}>
+                  <a href={"https://solscan.io/token/" + item.nftAddr.toBase58() + "?cluster=devnet"} target="_blank">{item.nftAddr.toBase58().slice(0, 10) + "..." + item.nftAddr.toBase58().slice(34, 44)}</a>
+                  <span>{item.owner.toBase58().slice(0, 10) + "..." + item.owner.toBase58().slice(34, 44)}</span>
+                  <span>{getDateReal(item.stakeTime.toNumber())}</span>
+                </p>
+              ))}
+            </div>
+          </Collapse>
         </div>
       </div>
       {wallet.publicKey !== null &&
@@ -260,7 +256,7 @@ export default function Product() {
                     <h2>Lottery Pool({lotteryState.itemCount})</h2>
                     <div className="cards-galley">
                       {
-                        lotteryNftList.length !== 0 && lotteryNftList.map((item, id) => (
+                        lotteryState.items.length !== 0 && lotteryState.items.map((item, id) => (
                           // <h6 key={id}>{getDateStr(item.stakeTime) + " >>> " + item.nftAddr.toBase58()}</h6>
                           <NFTCard
                             state={1}
@@ -268,9 +264,10 @@ export default function Product() {
                             image={item.image}
                             tokenAddress={item.mint}
                             stakedTime={item.stakedTime}
-                            setLotteryState={({ cnt, items }) => setLotteryState({ cnt, items })}
-                            setFixedState={({ cnt, items }) => setFixedState({ cnt, items })}
-                            setGlobalState={({ cnt, items }) => setGlobalState({ cnt, items })}
+                            setLotteryState={({ itemCount, items }) => setLotteryState({ itemCount, items })}
+                            setFixedState={({ itemCount, items }) => setFixedState({ itemCount, items })}
+                            setGlobalState={({ lotteryNftCount, fixedNftCount }) => setGlobalState({ lotteryNftCount, fixedNftCount })}
+                            setNewNftArry={(list) => setNewNftArry(list)}
                             key={id}
                           />
                         ))
@@ -281,7 +278,7 @@ export default function Product() {
                     <h2>Fixed Pool({fixedState.itemCount})</h2>
                     <div className="cards-galley">
                       {
-                        fixedNftList.length !== 0 && fixedNftList.map((item, id) => (
+                        fixedState.items.length !== 0 && fixedState.items.map((item, id) => (
                           // <h6 key={id}>{getDateStr(item.stakeTime) + " >>> " + item.nftAddr.toBase58()}</h6>
                           <NFTCard
                             state={2}
@@ -289,19 +286,14 @@ export default function Product() {
                             image={item.image}
                             tokenAddress={item.mint}
                             stakedTime={item.stakedTime}
-                            setLotteryState={({ cnt, items }) => setLotteryState({ cnt, items })}
-                            setFixedState={({ cnt, items }) => setFixedState({ cnt, items })}
-                            setGlobalState={({ cnt, items }) => setGlobalState({ cnt, items })}
+                            setLotteryState={({ itemCount, items }) => setLotteryState({ itemCount, items })}
+                            setFixedState={({ itemCount, items }) => setFixedState({ itemCount, items })}
+                            setGlobalState={({ lotteryNftCount, fixedNftCount }) => setGlobalState({ lotteryNftCount, fixedNftCount })}
+                            setNewNftArry={(list) => setNewNftArry(list)}
                             key={id}
                           />
                         ))
                       }
-                      {/* {
-                    fixedState.items.map((item, id) => (
-                      // <h6 key={id}>{getDateStr(item.stakeTime) + "<<<  " + getReward(item.stakeTime) + "SOL  >>> " + item.nftAddr.toBase58()}</h6>
-                      <NFTCard state={1} tokenAddress={item.nftAddr.toBase58()} key={id} />
-                    ))
-                  } */}
                     </div>
                   </div>
                 </div>
@@ -315,9 +307,10 @@ export default function Product() {
                         name={item.name}
                         image={item.image}
                         tokenAddress={item.mint}
-                        setLotteryState={({ cnt, items }) => setLotteryState({ cnt, items })}
-                        setFixedState={({ cnt, items }) => setFixedState({ cnt, items })}
-                        setGlobalState={({ cnt, items }) => setGlobalState({ cnt, items })}
+                        setLotteryState={({ itemCount, items }) => setLotteryState({ itemCount, items })}
+                        setFixedState={({ itemCount, items }) => setFixedState({ itemCount, items })}
+                        setGlobalState={({ lotteryNftCount, fixedNftCount }) => setGlobalState({ lotteryNftCount, fixedNftCount })}
+                        setNewNftArry={(list) => setNewNftArry(list)}
                         key={key}
                       />
                     ))

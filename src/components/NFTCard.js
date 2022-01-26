@@ -10,7 +10,7 @@ import {
   getGlobalState
 } from '../contexts/helpers';
 import { useWallet } from "@solana/wallet-adapter-react";
-import ClipLoader from "react-spinners/ClipLoader";
+// import ClipLoader from "react-spinners/ClipLoader";
 
 export default function NFTCard({
   image,
@@ -22,20 +22,23 @@ export default function NFTCard({
   setLotteryState,
   setFixedState,
   setGlobalState,
+  setNewNftArry,
   ...props
 }) {
   const [width, setWidth] = useState(0);
   const [lock, setLock] = useState(false);
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
   const wallet = useWallet();
   const ref = useRef(null);
 
   const updateLotteryPoolState = (addr) => {
-    getLotteryState(addr).then(result => {
+    getLotteryState(addr).then(async result => {
       if (result !== null) {
+        const list = result.items.slice(0, result.itemCount.toNumber());
+        const newList = await setNewNftArry(list)
         setLotteryState({
           itemCount: result.itemCount.toNumber(),
-          items: result.items.slice(0, result.itemCount.toNumber())
+          items: newList
         })
       }
     })
@@ -45,13 +48,18 @@ export default function NFTCard({
         fixedNftCount: result.fixedNftCount.toNumber()
       })
     })
+    setTimeout(() => {
+      window.location.reload()
+    }, 9000);
   }
   const updateFixedPoolState = (addr) => {
-    getFixedState(addr).then(result => {
+    getFixedState(addr).then(async result => {
       if (result !== null) {
+        const list = result.items.slice(0, result.itemCount.toNumber());
+        const newList = await setNewNftArry(list)
         setFixedState({
           itemCount: result.itemCount.toNumber(),
-          items: result.items.slice(0, result.itemCount.toNumber())
+          items: newList
         })
       }
     })
@@ -61,6 +69,9 @@ export default function NFTCard({
         fixedNftCount: result.fixedNftCount.toNumber()
       })
     })
+    setTimeout(() => {
+      window.location.reload()
+    }, 9000);
   }
 
   const onStakeToLottery = (tokenAddress) => {
@@ -74,11 +85,9 @@ export default function NFTCard({
     });
   }
   const onStakeToFixed = (tokenAddress) => {
-    setLoading(true)
     stakeToFixed(wallet, tokenAddress).then(() => {
       updateFixedPoolState(wallet.publicKey)
     });
-    setLoading(false)
   }
   const onWithdrawFromFixed = (tokenAddress) => {
     withdrawFromFixed(wallet, tokenAddress).then(() => {
@@ -109,38 +118,38 @@ export default function NFTCard({
       />
       <p>{name}</p>
       {state === 1 &&
-        <button className="unstake-button" onClick={() => onWithdrawFromLottery(tokenAddress)} disabled={loading}>
-          {!loading ?
-            <span>unstake</span>
+        <button className="unstake-button" onClick={() => onWithdrawFromLottery(tokenAddress)}>
+          <span>unstake</span>
+          {/* {!loading ?
             :
             <ClipLoader color="#fff" size={20} />
-          }
+          } */}
         </button>
       }
       {state === 2 &&
-        <button className="unstake-button" onClick={() => onWithdrawFromFixed(tokenAddress)} disabled={loading}>
-          {!loading ?
-            <span>unstake</span>
+        <button className="unstake-button" onClick={() => onWithdrawFromFixed(tokenAddress)}>
+          <span>unstake</span>
+          {/* {!loading ?
             :
             <ClipLoader color="#fff" size={20} />
-          }
+          } */}
         </button>
       }
       {state === 0 &&
         <>
           <button className="fixed-stake-button" onClick={() => onStakeToFixed(tokenAddress)} disabled={lock}>
-            {!loading ?
-              <span>staked to fixed</span>
+            <span>staked to fixed</span>
+            {/* {!loading ?
               :
               <ClipLoader color="#fff" size={20} />
-            }
+            } */}
           </button>
           <button className="lottery-stake-button" onClick={() => onStakeToLottery(tokenAddress)} disabled={lock}>
-            {!loading ?
-              <span>staked to lottery</span>
+            <span>staked to lottery</span>
+            {/* {!loading ?
               :
               <ClipLoader color="#fff" size={20} />
-            }
+            } */}
           </button>
         </>
       }

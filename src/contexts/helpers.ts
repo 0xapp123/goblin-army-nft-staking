@@ -164,6 +164,25 @@ export const getGlobalState = async (
   }
 }
 
+export const getLotteryPool = async (
+): Promise<Object | null> => {
+  let cloneWindow: any = window;
+  let provider = new anchor.Provider(solConnection, cloneWindow['solana'], anchor.Provider.defaultOptions())
+  const program = new anchor.Program(IDL, PROGRAM_ID, provider);
+
+  let globalLotteryPoolKey = await PublicKey.createWithSeed(
+    superAdminPk,
+    "global-lottery-pool",
+    program.programId,
+  );
+  try {
+    let globalLotteryPool = await program.account.globalLotteryPool.fetch(globalLotteryPoolKey);
+    return globalLotteryPool;
+  } catch {
+    return null;
+  }
+}
+
 export const stakeToLottery = async (
   wallet: WalletContextState,
   mint: string

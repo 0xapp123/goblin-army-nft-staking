@@ -2,10 +2,11 @@ import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 // components
 import logo from '../../assets/img/logo.png'
-//
+
 import {
-  WalletMultiButton as MaterialUIWalletMultiButton,
-} from '@solana/wallet-adapter-material-ui';
+  WalletModalProvider,
+  WalletMultiButton,
+} from "@solana/wallet-adapter-react-ui";
 
 DashboardNavbar.propTypes = {
   onOpenSidebar: PropTypes.func
@@ -23,7 +24,9 @@ export default function DashboardNavbar({ onOpenSidebar }) {
         </Link>
       </div>
       <div>
-        <MaterialUIWalletMultiButton />
+        <WalletModalProvider>
+          <WalletMultiButton />
+        </WalletModalProvider>
       </div>
     </div>
   );

@@ -5,6 +5,13 @@ import fs from 'fs';
 import { toast } from 'react-toastify';
 
 export function getDateStr(timestamp: any) {
+  // let d = new Date(timestamp * 1000);
+  // return d.getFullYear() + "/" + (d.getMonth() + 1) + "/"
+  //   + (d.getDate()) + " " + d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+  return timestamp.toNumber()
+}
+
+export function getDateReal(timestamp: any) {
   let d = new Date(timestamp * 1000);
   return d.getFullYear() + "/" + (d.getMonth() + 1) + "/"
     + (d.getDate()) + " " + d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
@@ -13,7 +20,7 @@ export function getReward(timestamp: any) {
   let d = new Date(timestamp * 1000);
   let now = new Date();
   //let time = (now.valueOf() - d.valueOf()) / 1000 / 60 / 60 / 24;
-  let time = (now.valueOf() - d.valueOf()) / (1000 * 60 * 2);
+  let time = Math.floor(now.valueOf() - d.valueOf()) / (1000 * 60 * 2);
   return Math.floor(time) * 0.02;
 }
 export function chunks(array: Uint8Array, size: number) {
