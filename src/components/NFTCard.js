@@ -10,6 +10,7 @@ import {
   getGlobalState
 } from '../contexts/helpers';
 import { useWallet } from "@solana/wallet-adapter-react";
+import ClipLoader from "react-spinners/ClipLoader";
 
 export default function NFTCard({
   image,
@@ -24,12 +25,8 @@ export default function NFTCard({
   ...props
 }) {
   const [width, setWidth] = useState(0);
-  // const [lotteryState, setLotteryState] = useState({ itemCount: 0, items: [] });
-  // const [fixedState, setFixedState] = useState({ itemCount: 0, items: [] });
-  // const [globalState, setGlobalState] = useState({ lotteryNftCount: 0, fixedNftCount: 0 });
-
-  const [lock, setLock] = useState(false)
-
+  const [lock, setLock] = useState(false);
+  const [loading, setLoading] = useState(false);
   const wallet = useWallet();
   const ref = useRef(null);
 
@@ -77,9 +74,11 @@ export default function NFTCard({
     });
   }
   const onStakeToFixed = (tokenAddress) => {
+    setLoading(true)
     stakeToFixed(wallet, tokenAddress).then(() => {
       updateFixedPoolState(wallet.publicKey)
     });
+    setLoading(false)
   }
   const onWithdrawFromFixed = (tokenAddress) => {
     withdrawFromFixed(wallet, tokenAddress).then(() => {
@@ -89,15 +88,15 @@ export default function NFTCard({
 
   useEffect(() => {
     setWidth(ref.current.clientWidth);
-  })
+  }, [])
 
   useEffect(() => {
     const now = new Date();
-    const stakedT = new Date(stakedTime + 3600 * 24 * 15 * 1000)
+    const stakedT = new Date(stakedTime + 1000 * 60 * 10)
     if (stakedT > now) {
       setLock(true)
     }
-  }, [])
+  }, [stakedTime])
   return (
     <div className="nft-card" ref={ref}>
       {image === undefined &&
@@ -105,26 +104,43 @@ export default function NFTCard({
       }
       <img
         src={image}
+        style={{ width: width - 20, height: width - 20 }}
         alt=""
       />
       <p>{name}</p>
-      {state === 0 &&
-        <button className="unstake-button" onClick={() => onWithdrawFromLottery(tokenAddress)} disabled={lock}>
-          unstake
-        </button>
-      }
       {state === 1 &&
-        <button className="unstake-button" onClick={() => onWithdrawFromFixed(tokenAddress)} disabled={lock}>
-          unstake
+        <button className="unstake-button" onClick={() => onWithdrawFromLottery(tokenAddress)} disabled={loading}>
+          {!loading ?
+            <span>unstake</span>
+            :
+            <ClipLoader color="#fff" size={20} />
+          }
         </button>
       }
       {state === 2 &&
+        <button className="unstake-button" onClick={() => onWithdrawFromFixed(tokenAddress)} disabled={loading}>
+          {!loading ?
+            <span>unstake</span>
+            :
+            <ClipLoader color="#fff" size={20} />
+          }
+        </button>
+      }
+      {state === 0 &&
         <>
-          <button className="fixed-stake-button" onClick={() => onStakeToFixed(tokenAddress)}>
-            staked to fixed
+          <button className="fixed-stake-button" onClick={() => onStakeToFixed(tokenAddress)} disabled={lock}>
+            {!loading ?
+              <span>staked to fixed</span>
+              :
+              <ClipLoader color="#fff" size={20} />
+            }
           </button>
-          <button className="lottery-stake-button" onClick={() => onStakeToLottery(tokenAddress)}>
-            staked to lottery
+          <button className="lottery-stake-button" onClick={() => onStakeToLottery(tokenAddress)} disabled={lock}>
+            {!loading ?
+              <span>staked to lottery</span>
+              :
+              <ClipLoader color="#fff" size={20} />
+            }
           </button>
         </>
       }

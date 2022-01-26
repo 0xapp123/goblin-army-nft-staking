@@ -105,10 +105,10 @@ export const getLotteryState = async (
     program.programId,
   );
 
-  const [poolWalletKey, walletBump] = await PublicKey.findProgramAddress(
-    [Buffer.from(POOL_WALLET_SEED)],
-    program.programId
-  );
+  // const [poolWalletKey, walletBump] = await PublicKey.findProgramAddress(
+  //   [Buffer.from(POOL_WALLET_SEED)],
+  //   program.programId
+  // );
 
   //try {
   let lotteryPoolState = await program.account.userPool.fetch(userLotteryPoolKey);
@@ -145,12 +145,19 @@ export const getGlobalState = async (
   let cloneWindow: any = window;
   let provider = new anchor.Provider(solConnection, cloneWindow['solana'], anchor.Provider.defaultOptions())
   const program = new anchor.Program(IDL, PROGRAM_ID, provider);
-  const [globalAuthority, bump] = await PublicKey.findProgramAddress(
+  const [globalAuthority] = await PublicKey.findProgramAddress(
     [Buffer.from(GLOBAL_AUTHORITY_SEED)],
     program.programId
   );
+  let globalLotteryPoolKey = await PublicKey.createWithSeed(
+    superAdminPk,
+    "global-lottery-pool",
+    program.programId,
+  );
   try {
     let globalState = await program.account.globalPool.fetch(globalAuthority);
+    let globalLotteryPool = await program.account.globalLotteryPool.fetch(globalLotteryPoolKey);
+    console.log("globalLotteryPool =", globalLotteryPool);
     return globalState;
   } catch {
     return null;
@@ -269,7 +276,7 @@ export const withdrawFromLottery = async (
   let globalLotteryPoolData: any = await program.account.globalLotteryPool.fetch(globalLotteryPoolKey);
   let nftIndex = 0;
   for (let i = 0; i < globalLotteryPoolData.itemCount.toNumber(); i++) {
-    if (globalLotteryPoolData.lotteryItems[i].nftAddr.toBase58() == nft_mint.toBase58()) {
+    if (globalLotteryPoolData.lotteryItems[i].nftAddr.toBase58() === nft_mint.toBase58()) {
       nftIndex = i;
       break;
     }
@@ -396,7 +403,7 @@ export const withdrawFromFixed = async (
     program.programId,
   );
 
-  let tx = new Transaction();
+  // let tx = new Transaction();
   const [staked_nft_address, nft_bump] = await PublicKey.findProgramAddress(
     [Buffer.from("staked-nft"), nft_mint.toBuffer()],
     program.programId
@@ -441,13 +448,14 @@ export const claimReward = async (
     [Buffer.from(POOL_WALLET_SEED)],
     program.programId
   );
+  console.log("poolWalletKey =", poolWalletKey.toBase58());
   let userFixedPoolKey = await PublicKey.createWithSeed(
     wallet.publicKey,
     "user-fixed-pool",
     program.programId,
   );
 
-  let tx = new Transaction();
+  // let tx = new Transaction();
 
   let txHash = await program.rpc.claimReward(
     bump, 0, walletBump, {
@@ -465,16 +473,16 @@ export const claimReward = async (
   return false;
 }
 
-const getOwnerOfNFT = async (nftMintPk: PublicKey): Promise<PublicKey> => {
-  let tokenAccountPK = await getNFTTokenAccount(nftMintPk);
-  let tokenAccountInfo = await solConnection.getAccountInfo(tokenAccountPK);
+// const getOwnerOfNFT = async (nftMintPk: PublicKey): Promise<PublicKey> => {
+//   let tokenAccountPK = await getNFTTokenAccount(nftMintPk);
+//   let tokenAccountInfo = await solConnection.getAccountInfo(tokenAccountPK);
 
-  if (tokenAccountInfo && tokenAccountInfo.data) {
-    let ownerPubkey = new PublicKey(tokenAccountInfo.data.slice(32, 64))
-    return ownerPubkey;
-  }
-  return new PublicKey("");
-}
+//   if (tokenAccountInfo && tokenAccountInfo.data) {
+//     let ownerPubkey = new PublicKey(tokenAccountInfo.data.slice(32, 64))
+//     return ownerPubkey;
+//   }
+//   return new PublicKey("");
+// }
 
 const getTokenAccount = async (mintPk: PublicKey, userPk: PublicKey): Promise<PublicKey> => {
   let tokenAccount = await solConnection.getProgramAccounts(

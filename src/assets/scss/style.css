@@ -167,13 +167,16 @@ button {
 }
 
 .nft-card button {
-  padding: 3px 10px;
+  padding: 10px 10px;
   margin: 0 auto;
   text-transform: uppercase;
   font-weight: 700;
   color: #fff;
   border: none;
   border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .nft-card button:disabled {
   cursor: no-drop;
@@ -181,6 +184,9 @@ button {
 }
 .unstake-button {
   background: #9f0000;
+}
+.unstake-button:hover {
+  background: #750000;
 }
 .fixed-stake-button {
   width: 100%;
@@ -246,7 +252,7 @@ button {
     padding: 0;
   }
   .nft-card button {
-    padding: 3px 5px;
+    padding: 6px 5px;
     font-size: 10px;
   }
   .staked-nfts {
