@@ -46,7 +46,6 @@ export default function Product() {
       console.log(err)
       setClaimLoading(false)
     })
-    getClaimRewardValue()
   }
 
   const getLotteryHolders = async () => {
@@ -139,14 +138,14 @@ export default function Product() {
           .then(resp =>
             resp.json()
           ).then((json) => {
-            let nameTemp = json.name.slice(" #")
-            if (nameTemp[0] === "Goblin Army") {
-              nftDump.push({
-                "name": json.name,
-                "image": json.image,
-                "mint": item.mint
-              })
-            }
+            // let nameTemp = json.name.slice(" #")
+            // if (nameTemp[0] === "Goblin Army") {
+            nftDump.push({
+              "name": json.name,
+              "image": json.image,
+              "mint": item.mint
+            })
+            // }
           })
       ))
       setUnstakedNFTList(nftDump)
