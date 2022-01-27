@@ -1,6 +1,7 @@
 
 import { web3 } from '@project-serum/anchor';
 import {
+  AccountInfo,
   // Keypair,
   PublicKey,
   SystemProgram,
@@ -149,15 +150,14 @@ export const getGlobalState = async (
     [Buffer.from(GLOBAL_AUTHORITY_SEED)],
     program.programId
   );
-  let globalLotteryPoolKey = await PublicKey.createWithSeed(
-    superAdminPk,
-    "global-lottery-pool",
-    program.programId,
-  );
+  // let globalLotteryPoolKey = await PublicKey.createWithSeed(
+  //   superAdminPk,
+  //   "global-lottery-pool",
+  //   program.programId,
+  // );
   try {
     let globalState = await program.account.globalPool.fetch(globalAuthority);
-    let globalLotteryPool = await program.account.globalLotteryPool.fetch(globalLotteryPoolKey);
-    console.log("globalLotteryPool =", globalLotteryPool);
+    // let globalLotteryPool = await program.account.globalLotteryPool.fetch(globalLotteryPoolKey);
     return globalState;
   } catch {
     return null;
@@ -257,6 +257,12 @@ export const stakeToLottery = async (
   ));
   let txHash = await wallet.sendTransaction(tx, solConnection);
   await solConnection.confirmTransaction(txHash, "confirmed");
+  await new Promise((resolve, reject) => {
+    solConnection.onAccountChange(userTokenAccount, (data: AccountInfo<Buffer> | null) => {
+      if (!data) reject();
+      resolve(true);
+    });
+  });
   showToast("Success. txHash=" + txHash, 0);
   return false;
 }
@@ -321,6 +327,12 @@ export const withdrawFromLottery = async (
   ));
   let txHash = await wallet.sendTransaction(tx, solConnection);
   await solConnection.confirmTransaction(txHash, "confirmed");
+  await new Promise((resolve, reject) => {
+    solConnection.onAccountChange(userTokenAccount, (data: AccountInfo<Buffer> | null) => {
+      if (!data) reject();
+      resolve(true);
+    });
+  });
   showToast("Success. txHash=" + txHash, 0);
   return false;
 }
@@ -394,6 +406,12 @@ export const stakeToFixed = async (
   ));
   let txHash = await wallet.sendTransaction(tx, solConnection);
   await solConnection.confirmTransaction(txHash, "confirmed");
+  await new Promise((resolve, reject) => {
+    solConnection.onAccountChange(userTokenAccount, (data: AccountInfo<Buffer> | null) => {
+      if (!data) reject();
+      resolve(true);
+    });
+  });
   showToast("Success. txHash=" + txHash, 0);
   return false;
 }
@@ -447,6 +465,12 @@ export const withdrawFromFixed = async (
   }
   );
   await solConnection.confirmTransaction(txHash, "confirmed");
+  await new Promise((resolve, reject) => {
+    solConnection.onAccountChange(userTokenAccount, (data: AccountInfo<Buffer> | null) => {
+      if (!data) reject();
+      resolve(true);
+    });
+  });
   showToast("Success. txHash=" + txHash, 0);
   return false;
 }
@@ -488,6 +512,12 @@ export const claimReward = async (
   }
   );
   await solConnection.confirmTransaction(txHash, "confirmed");
+  await new Promise((resolve, reject) => {
+    solConnection.onAccountChange(userFixedPoolKey, (data: AccountInfo<Buffer> | null) => {
+      if (!data) reject();
+      resolve(true);
+    });
+  });
   showToast("Success. txHash=" + txHash, 0);
   return false;
 }

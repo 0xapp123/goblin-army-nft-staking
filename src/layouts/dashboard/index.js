@@ -9,10 +9,11 @@ import { Wallets } from '../../components/wallet'
 import { SnackbarProvider } from 'notistack';
 import { Container } from '@mui/material';
 import bannerImage from '../../assets/img/banner.png'
+import { UserNFTContextProvider } from '../../contexts/userNfts';
 // ----------------------------------------------------------------------
 
 // const APP_BAR_MOBILE = 64;
-const APP_BAR_DESKTOP = 92;
+// const APP_BAR_DESKTOP = 92;
 
 const MainStyle = styled('div')(({ theme }) => ({
   flexGrow: 1,
@@ -21,7 +22,7 @@ const MainStyle = styled('div')(({ theme }) => ({
   paddingTop: 20,
   paddingBottom: theme.spacing(10),
   [theme.breakpoints.up('xl')]: {
-    paddingTop: APP_BAR_DESKTOP + 24,
+    paddingTop: 40,
   }
 }));
 
@@ -37,7 +38,9 @@ export default function DashboardLayout() {
           <Wallets>
             <DashboardNavbar onOpenSidebar={() => setOpen(true)} open={open} />
             <MainStyle>
-              <Outlet />
+              <UserNFTContextProvider>
+                <Outlet />
+              </UserNFTContextProvider>
             </MainStyle>
           </Wallets>
         </SnackbarProvider>
